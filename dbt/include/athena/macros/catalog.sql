@@ -34,17 +34,25 @@
 
             )
 
-            select tables.*,
-                   columns.column_name,
-                   columns.column_index,
-                   columns.column_type,
-                   columns.column_comment
-            from tables
-            join columns using ("table_database", "table_schema", "table_name")
-            where "columns"."table_schema" != 'information_schema'
+            select t."table_database"
+                 , t."table_schema"
+                 , t."table_name"
+                 , t."table_type"
+                 , t."table_owner"
+                 , c."table_comment"
+                 , c."column_name"
+                 , c."column_index"
+                 , c."column_type"
+                 , c."column_comment"
+            from tables t
+            join columns c 
+              on t."table_database" = c."table_database"
+             and t."table_schema" = c."table_schema" 
+             and t."table_name" = t."table_name"
+            where t."table_schema" != 'information_schema'
             and (
             {%- for schema in schemas -%}
-              upper("table_schema") = upper('{{ schema }}'){%- if not loop.last %} or {% endif -%}
+              upper(t."table_schema") = upper('{{ schema }}'){%- if not loop.last %} or {% endif -%}
             {%- endfor -%}
             )
             order by "column_index"
