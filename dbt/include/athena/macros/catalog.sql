@@ -7,14 +7,17 @@
             with tables as (
 
                 select
-                    table_catalog as "table_database",
-                    table_schema as "table_schema",
-                    table_name as "table_name",
-                    table_type as "table_type",
+                    t.table_catalog as "table_database",
+                    t.table_schema as "table_schema",
+                    t.table_name as "table_name",
+                    case when v.table_name is not null then 'VIEW' ELSE t.table_type END as "table_type",
                     null as "table_owner"
 
-                from {{ information_schema }}.tables
-
+                from {{ information_schema }}.tables t
+                left join {{ information_schema }}.views v
+                       on t.table_catalog = v.table_catalog
+                      and t.table_schema = v.table_schema
+                      and t.table_name = v.table_name
             ),
 
             columns as (
