@@ -38,24 +38,24 @@
                  , t."table_schema"
                  , t."table_name"
                  , t."table_type"
-                 , t."table_owner"
                  , c."table_comment"
                  , c."column_name"
                  , c."column_index"
                  , c."column_type"
                  , c."column_comment"
+                 , t."table_owner"
             from tables t
             join columns c 
               on t."table_database" = c."table_database"
              and t."table_schema" = c."table_schema" 
-             and t."table_name" = t."table_name"
+             and t."table_name" = c."table_name"
             where t."table_schema" != 'information_schema'
             and (
             {%- for schema in schemas -%}
               upper(t."table_schema") = upper('{{ schema }}'){%- if not loop.last %} or {% endif -%}
             {%- endfor -%}
             )
-            order by "column_index"
+            order by t."table_database", t."table_schema", t."table_name", c."column_index"
         )
 
     )
