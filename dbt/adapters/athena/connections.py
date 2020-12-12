@@ -99,9 +99,9 @@ class CursorWrapper(object):
 class ConnectionWrapper(object):
     """Wrap a Athena connection in a way that accomplishes two tasks:
 
-        - prefetch results from execute() calls so that presto calls actually
-            persist to the db but then present the usual cursor interface
-        - provide `cancel()` on the same object as `commit()`/`rollback()`/...
+    - prefetch results from execute() calls so that presto calls actually
+        persist to the db but then present the usual cursor interface
+    - provide `cancel()` on the same object as `commit()`/`rollback()`/...
 
     """
 
