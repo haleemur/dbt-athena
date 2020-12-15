@@ -61,9 +61,56 @@
 {% endmacro %}
 
 
+{% macro athena__format_ctas_options(_format, _compression, _partitioned_by, _bucketed_by, _bucket_count, _external_location) %}
+  {%- set opts = '' %}
+  {%- if _format -%}
+    {%- set opts = " format='" + _format + "'" -%}
+  {% endif %}
+
+  {%- if _compression -%}
+    {%- if _format == 'orc'-%}
+      {%- set opts = opts + ", orc_compression='" + _compression + "'" -%}
+    {%- elif _format == 'parquet' -%}
+      {%- set opts = opts + ", parquet_compression='" + _compression + "'" -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if _partitioned_by -%}
+    {%- if opts != '' -%}{%- set opts = opts + ',' -%}{% endif %}
+    {% set cols = '' %}
+    {%- set opts = opts + " partitioned_by=ARRAY" + _partitioned_by | tojson | replace('"', "'") -%}
+  {%- endif -%}
+
+  {%- if _bucketed_by -%}
+    {%- if opts != '' -%}{%- set opts = opts + ',' -%}{% endif %}
+    {% set cols = '' %}
+    {%- set opts = opts + " bucketed_by=ARRAY" + _bucketed_by | tojson | replace('"', "'") -%}
+  {%- endif -%}
+
+  {%if _bucket_count %}
+    {% if opts != ''%}{% set opts = opts + ',' %}{% endif %}
+    {% set opts = opts + " bucket_count=" + _bucket_count %}
+  {% endif %}
+
+  {%if _external_location%}
+    {% if opts != ''%}{% set opts = opts + ',' %}{% endif %}
+    {% set opts = opts + " external_location='" + _external_location + "'"%}
+  {% endif %}
+
+  {{ return(opts)}} 
+{% endmacro%}
+
 {% macro athena__create_table_as(temporary, relation, sql) -%}
+  {%- set _fmt = config.get('format') -%}
+  {%- set _comp= config.get('compression') -%}
+  {%- set _part= config.get('partitioned_by') -%}
+  {%- set _buck= config.get('bucketed_by') -%}
+  {%- set _num_buck = config.get('bucket_count') -%}
+  {%- set _loc = config.get('external_location') -%}
+  {%- set opts = athena__format_ctas_options(_fmt, _comp, _part, _buck, _num_buck, _loc) -%}
   create table
     {{ relation }}
+    {% if opts %} WITH ({{ opts }}){% endif %}
   as (
     -- wrapping to select allows to use "with" statements inside "create table"
     select * from (
