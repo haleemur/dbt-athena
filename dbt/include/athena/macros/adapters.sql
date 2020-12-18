@@ -61,9 +61,48 @@
 {% endmacro %}
 
 
+{% macro athena__format_ctas_options() %}
+  {%- set _fmt = config.get('format') -%}
+  {%- set _compression = config.get('compression') -%}
+  {%- set _partitioned_by = config.get('partitioned_by') -%}
+  {%- set _bucketed_by = config.get('bucketed_by') -%}
+  {%- set _bucket_count = config.get('bucket_count') -%}
+  {%- set _external_location = config.get('external_location') -%}
+  {%- set opts = '' -%}
+  {%- if _fmt -%}
+    {%- set opts = " format='" + _fmt + "'" -%}
+  {%- endif -%}
+  {%- if _compression -%}
+    {%- if _format == 'orc'-%}
+      {%- set opts = opts + ", orc_compression='" + _compression + "'" -%}
+    {%- elif _format == 'parquet' -%}
+      {%- set opts = opts + ", parquet_compression='" + _compression + "'" -%}
+    {%- endif -%}
+  {%- endif -%}
+  {%- if _partitioned_by -%}
+    {%- if opts != '' -%}{%- set opts = opts + ',' -%}{%- endif -%}
+    {% set cols = '' %}
+    {%- set opts = opts + " partitioned_by=ARRAY" + _partitioned_by | tojson | replace('"', "'") -%}
+  {%- endif -%}
+  {%- if _bucketed_by -%}
+    {%- if opts != '' -%}{%- set opts = opts + ',' -%}{%- endif -%}
+    {%- set cols = '' -%}
+    {%- set opts = opts + " bucketed_by=ARRAY" + _bucketed_by | tojson | replace('"', "'") -%}
+  {%- endif -%}
+  {%- if _bucket_count -%}
+    {%- if opts != ''%}{% set opts = opts + ',' -%}{%- endif -%}
+    {%- set opts = opts + " bucket_count=" + _bucket_count -%}
+  {%- endif -%}
+  {%- if _external_location -%}
+    {%- if opts != ''%}{% set opts = opts + ',' -%}{%- endif -%}
+    {%- set opts = opts + " external_location='" + _external_location + "'" -%}
+  {%- endif -%}
+  {%- if opts -%}WITH ({{ opts }}){%- endif -%} 
+{% endmacro %}
+
 {% macro athena__create_table_as(temporary, relation, sql) -%}
   create table
-    {{ relation }}
+    {{ relation }} {{ athena__format_ctas_options() }}
   as (
     -- wrapping to select allows to use "with" statements inside "create table"
     select * from (
