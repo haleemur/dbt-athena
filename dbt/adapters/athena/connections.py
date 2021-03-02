@@ -3,7 +3,7 @@ import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 
 import sqlparse
 from pyathena import connect
@@ -24,8 +24,8 @@ class AthenaCredentials(Credentials):
     schema: str
     s3_staging_dir: str
     region_name: str
-    work_group: str
-    role_arn: str
+    work_group: Optional[str] = None
+    role_arn: Optional[str] = None
     threads: int = 1
     max_retry_number: int = 5
     max_retry_delay: int = 100
