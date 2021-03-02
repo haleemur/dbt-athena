@@ -3,7 +3,7 @@ import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 
 import sqlparse
 from pyathena import connect
@@ -24,6 +24,8 @@ class AthenaCredentials(Credentials):
     schema: str
     s3_staging_dir: str
     region_name: str
+    work_group: Optional[str] = None
+    role_arn: Optional[str] = None
     threads: int = 1
     max_retry_number: int = 5
     max_retry_delay: int = 100
@@ -33,7 +35,7 @@ class AthenaCredentials(Credentials):
         return "athena"
 
     def _connection_keys(self) -> Tuple[str]:
-        return ("s3_staging_dir", "database", "schema", "region_name")
+        return ("s3_staging_dir", "database", "schema", "region_name", "work_group", "role_arn")
 
 
 class CursorWrapper(object):
@@ -164,6 +166,8 @@ class AthenaConnectionManager(SQLConnectionManager):
         conn = connect(
             s3_staging_dir=credentials.s3_staging_dir,
             region_name=credentials.region_name,
+            role_arn=credentials.role_arn,
+            work_group=credentials.work_group,
             schema_name=credentials.schema,
             cursor_class=AsyncCursor,
             retry_config=RetryConfig(
