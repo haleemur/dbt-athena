@@ -30,5 +30,5 @@ setup(
             "include/athena/macros/*/*.sql",
         ]
     },
-    install_requires=["dbt-core=={}".format(package_version), "PyAthena"],
+    install_requires=["dbt-core>={}".format(package_version), "PyAthena"],
 )
