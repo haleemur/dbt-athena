@@ -10,12 +10,13 @@ with open(os.path.join(this_directory, "README.md")) as f:
 
 
 package_name = "dbt-athena"
-package_version = "0.16.1"
+dbt_minimal_version = "0.16.1"
+version = "0.0.4"
 description = """The athena adpter plugin for dbt (data build tool)"""
 
 setup(
     name=package_name,
-    version=package_version,
+    version=version,
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -30,5 +31,5 @@ setup(
             "include/athena/macros/*/*.sql",
         ]
     },
-    install_requires=["dbt-core>={}".format(package_version), "PyAthena"],
+    install_requires=["dbt-core>={}".format(dbt_minimal_version), "PyAthena"],
 )
